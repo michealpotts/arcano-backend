@@ -58,6 +58,8 @@ src/
    DB_USERNAME=root
    DB_PASSWORD=your_password
    DB_DATABASE=galachain_game
+   DB_CA_CERT_BASE64= # base64 of your MySQL CA PEM (for managed services)
+   DB_CA_CERT_BASE64= # base64 of your MySQL CA PEM (for managed services)
 
    # GalaChain Configuration
    GALACHAIN_NETWORK=testnet
@@ -400,6 +402,7 @@ backend/
 - Configure CORS appropriately for production
 - Sanitize file uploads
 - Use HTTPS in production
+- For managed MySQL (Aiven/Render), set `DB_CA_CERT_BASE64` to the base64-encoded CA PEM (e.g., `base64 -w0 ca.pem` on Ubuntu). The app will write it to a temp file and enable TLS.
 
 ## 📚 Dependencies
 

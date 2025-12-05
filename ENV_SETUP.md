@@ -13,6 +13,7 @@ DB_PORT=3306
 DB_USERNAME=root
 DB_PASSWORD=your_password_here
 DB_DATABASE=galachain_game
+DB_CA_CERT_BASE64= # base64 of your MySQL CA PEM
 
 # GalaChain Configuration
 GALACHAIN_NETWORK=testnet
@@ -33,6 +34,7 @@ CORS_ORIGIN=http://localhost:3000
 2. Replace `your_password_here` with your MySQL root password
 3. Replace `your_api_key_here` with your GalaChain API key
 4. Adjust other values as needed for your environment
+5. For managed MySQL (Aiven/Render), base64-encode your CA PEM and set `DB_CA_CERT_BASE64`
 
 ## Database Setup
 
@@ -48,4 +50,5 @@ CORS_ORIGIN=http://localhost:3000
 - Never commit the `.env` file to version control (it's in `.gitignore`)
 - In production, set `NODE_ENV=production` and disable `synchronize` in database config
 - Adjust `MAX_FILE_SIZE` (in bytes) based on your needs (default is 5MB)
+- To base64-encode your CA on Ubuntu: `base64 -w0 ca.pem`
 
