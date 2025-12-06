@@ -8,6 +8,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import profileRoutes from './routes/profileRoutes';
+import authRoutes from './routes/authRoutes';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import path from 'path';
 import fs from 'fs';
@@ -49,7 +50,8 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/profile', profileRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);

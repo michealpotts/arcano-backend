@@ -21,7 +21,8 @@ export class ProfileRepository {
   async create(playerId: string, nickName?: string): Promise<Profile> {
     const profile = this.repository.create({
       playerId,
-      nickName: nickName || `Player_${playerId.slice(0, 8)}`,
+      nickName: nickName || playerId,
+      profilePicture: '',
       xp: 0,
       level: 0,
       galaBalance: 0,
