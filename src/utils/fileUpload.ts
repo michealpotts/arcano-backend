@@ -10,10 +10,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Ensure upload directory exists
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+console.log('File upload directory:', uploadDir);
 
 // Configure storage
 const storage = multer.diskStorage({
@@ -21,8 +22,10 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename: playerId_timestamp.extension
-    const playerId = req.params.playerId || 'unknown';
+    // Generate unique filename: profile_playerId_timestamp.extension
+    // Sanitize playerId to avoid filesystem/URL issues (remove special chars)
+    const playerId = (req.params.playerId || 'unknown')
+      .replace(/[^a-zA-Z0-9]/g, '_'); // Replace special chars with underscore
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
     cb(null, `profile_${playerId}_${uniqueSuffix}${ext}`);

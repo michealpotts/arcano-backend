@@ -34,11 +34,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files statically
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
-app.use('/uploads', express.static(path.resolve(uploadDir)));
+console.log('Upload directory:', uploadDir);
+app.use('/uploads', express.static(uploadDir));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
