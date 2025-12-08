@@ -46,12 +46,6 @@ export class ProfileController {
       const profile = await this.profileService.createProfile(playerId);
       await this.profileService.updateLastLogin(playerId);
 
-      // Convert profilePicture to absolute URL for frontend
-      if (profile && profile.profilePicture) {
-        // @ts-ignore mutate for response
-        profile.profilePicture = this.makeAbsoluteUrl(req, profile.profilePicture) as any;
-      }
-
       res.status(200).json({
         success: true,
         data: profile,
@@ -90,11 +84,6 @@ export class ProfileController {
       const { playerId } = req.params;
       const profile = await this.profileService.getProfile(playerId);
 
-      if (profile && profile.profilePicture) {
-        // @ts-ignore
-        profile.profilePicture = this.makeAbsoluteUrl(req, profile.profilePicture) as any;
-      }
-
       res.status(200).json({
         success: true,
         data: profile,
@@ -130,11 +119,6 @@ export class ProfileController {
       const { playerId } = req.params;
       const { nickName } = req.body;
       const profile = await this.profileService.updateNickName(playerId, nickName);
-
-      if (profile && profile.profilePicture) {
-        // @ts-ignore
-        profile.profilePicture = this.makeAbsoluteUrl(req, profile.profilePicture) as any;
-      }
 
       res.status(200).json({
         success: true,
@@ -180,11 +164,6 @@ export class ProfileController {
       const filePath = `/uploads/${file.filename}`;
       const profile = await this.profileService.updateProfilePicture(playerId, filePath);
 
-      if (profile && profile.profilePicture) {
-        // @ts-ignore
-        profile.profilePicture = this.makeAbsoluteUrl(req, profile.profilePicture) as any;
-      }
-
       res.status(200).json({
         success: true,
         data: profile,
@@ -215,11 +194,6 @@ export class ProfileController {
     try {
       const { playerId } = req.params;
       const profile = await this.profileService.syncGalaBalance(playerId);
-
-      if (profile && profile.profilePicture) {
-        // @ts-ignore
-        profile.profilePicture = this.makeAbsoluteUrl(req, profile.profilePicture) as any;
-      }
 
       res.status(200).json({
         success: true,
