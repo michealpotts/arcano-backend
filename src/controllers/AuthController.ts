@@ -8,6 +8,8 @@ import { AuthService } from '../services/AuthService';
 import { ProfileService } from '../services/ProfileService';
 import { AppError } from '../utils/errors';
 
+const signatureMessage = "Arcano Authentication Message";
+
 export class AuthController {
   private authService: AuthService;
   private profileService: ProfileService;
@@ -39,11 +41,11 @@ export class AuthController {
     try {
       const { walletAddress } = req.body;
       if (!walletAddress) {
-        throw new AppError('Wallet address is required', 400);
+        throw new AppError(400, 'Wallet address is required');
       }
 
       const timestamp = Date.now();
-      const message = this.authService.createSignatureMessage(walletAddress, timestamp);
+      const message = signatureMessage;
 
       res.status(200).json({
         success: true,
@@ -65,8 +67,7 @@ export class AuthController {
    * {
    *   "walletAddress": "0x...",
    *   "message": "I am signing this message...",
-   *   "signature": "0x...",
-   *   "playerId": "optional-player-id"
+   *   "signature": "0x..."
    * }
    * 
    * Response:
@@ -80,29 +81,26 @@ export class AuthController {
    */
   login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { walletAddress, message, signature, playerId } = req.body;
+      const { walletAddress, message, signature } = req.body;
         
       // Validate inputs
       if (!walletAddress || !message || !signature) {
-        throw new AppError('Wallet address, message, and signature are required', 400);
+        throw new AppError(400, 'Wallet address, message, and signature are required');
       }
 
-      // Verify the signature
-      const isValidSignature = this.authService.verifySignature(message, signature, walletAddress);
-
-      if (!isValidSignature) {
-        throw new AppError('Invalid signature', 401);
+      // Verify the signature and get the recovered wallet address
+      const recoveredWalletAddress = this.authService.verifySignature(message, signature);
+      
+      if (!recoveredWalletAddress) {
+        throw new AppError(401, 'Invalid signature');
       }
 
-      // Use provided playerId or wallet address as default
-      const actualPlayerId = playerId || walletAddress;
-
-      // Create or get profile
-      const profile = await this.profileService.createProfile(actualPlayerId);
-      await this.profileService.updateLastLogin(actualPlayerId);
+      // Create or get profile using walletAddress
+      const profile = await this.profileService.createProfile(recoveredWalletAddress, walletAddress);
+      await this.profileService.updateLastLogin(recoveredWalletAddress);
 
       // Generate JWT token
-      const token = this.authService.generateToken(profile.id, actualPlayerId);
+      const token = this.authService.generateToken(profile.walletAddress);
 
       res.status(200).json({
         success: true,
@@ -126,21 +124,19 @@ export class AuthController {
    * {
    *   "success": true,
    *   "data": {
-   *     "playerId": "...",
    *     "walletAddress": "0x..."
    *   }
    * }
    */
   verify = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      if (!req.userId || !req.walletAddress) {
-        throw new AppError('Not authenticated', 401);
+      if (!req.walletAddress) {
+        throw new AppError(401, 'Not authenticated');
       }
 
       res.status(200).json({
         success: true,
         data: {
-          playerId: req.userId,
           walletAddress: req.walletAddress,
         },
       });

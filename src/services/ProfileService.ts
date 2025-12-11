@@ -21,77 +21,77 @@ export class ProfileService {
   /**
    * 1. Create a new profile for a player
    */
-  async createProfile(playerId: string): Promise<Profile> {
+  async createProfile(walletAddress: string, playerId: string): Promise<Profile> {
     // Check if profile already exists
-    const existingProfile = await this.profileRepository.findByPlayerId(playerId);
+    const existingProfile = await this.profileRepository.findByWalletAddress(walletAddress);
     if (existingProfile) {
       return existingProfile;
     }
 
     // Create new profile
-    return await this.profileRepository.create(playerId);
+    return await this.profileRepository.create(walletAddress,playerId);
   }
 
   /**
-   * 2. Get profile by playerId
+   * 2. Get profile by walletAddress
    */
-  async getProfile(playerId: string): Promise<Profile> {
-    return await this.profileRepository.findByPlayerIdOrFail(playerId);
+  async getProfile(walletAddress: string): Promise<Profile> {
+    return await this.profileRepository.findByWalletAddressOrFail(walletAddress);
   }
 
   /**
    * 3. Update nickname
    */
-  async updateNickName(playerId: string, nickName: string): Promise<Profile> {
+  async updateNickName(walletAddress: string, nickName: string): Promise<Profile> {
     if (!nickName || nickName.trim().length === 0) {
       throw new BadRequestError('Nickname cannot be empty');
     }
     if (nickName.length > 100) {
       throw new BadRequestError('Nickname cannot exceed 100 characters');
     }
-    return await this.profileRepository.updateNickName(playerId, nickName.trim());
+    return await this.profileRepository.updateNickName(walletAddress, nickName.trim());
   }
 
   /**
    * 4. Update profile picture
    */
   async updateProfilePicture(
-    playerId: string,
+    walletAddress: string,
     filePath: string | null
   ): Promise<Profile> {
-    return await this.profileRepository.updateProfilePicture(playerId, filePath);
+    return await this.profileRepository.updateProfilePicture(walletAddress, filePath);
   }
 
   /**
    * 5. Sync GALA balance from blockchain
    */
-  async syncGalaBalance(playerId: string): Promise<Profile> {
-    const balance = await this.galaChainService.getBalance(playerId);
-    return await this.profileRepository.updateGalaBalance(playerId, balance);
+  async syncGalaBalance(walletAddress: string): Promise<Profile> {
+    const balance = await this.galaChainService.getBalance(walletAddress);
+    return await this.profileRepository.updateGalaBalance(walletAddress, balance);
   }
 
   /**
    * 6. Get inventory from database
    */
-  async getInventory(playerId: string): Promise<InventoryItem[]> {
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+  async getInventory(walletAddress: string): Promise<InventoryItem[]> {
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     return profile.inventory || [];
   }
 
   /**
    * 7. Refresh inventory from blockchain and update database
    */
-  async refreshInventoryFromChain(playerId: string): Promise<InventoryItem[]> {
-    const chainInventory = await this.galaChainService.getInventory(playerId);
-    await this.profileRepository.updateInventory(playerId, chainInventory);
+  async refreshInventoryFromChain(walletAddress: string): Promise<InventoryItem[]> {
+    const chainInventory = await this.galaChainService.getInventory(walletAddress);
+    await this.profileRepository.updateInventory(walletAddress, chainInventory);
     return chainInventory;
   }
 
   /**
    * 8. Equip an item
    */
-  async equipItem(playerId: string, instanceId: string): Promise<Profile> {
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+  async equipItem(walletAddress: string, instanceId: string): Promise<Profile> {
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     const inventory = profile.inventory || [];
 
     // Find the item in inventory
@@ -107,14 +107,14 @@ export class ProfileService {
     // For now, we'll just equip the requested item
     inventory[itemIndex].equipped = true;
 
-    return await this.profileRepository.updateInventory(playerId, inventory);
+    return await this.profileRepository.updateInventory(walletAddress, inventory);
   }
 
   /**
    * 9. Unequip an item
    */
-  async unequipItem(playerId: string, instanceId: string): Promise<Profile> {
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+  async unequipItem(walletAddress: string, instanceId: string): Promise<Profile> {
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     const inventory = profile.inventory || [];
 
     // Find the item in inventory
@@ -128,14 +128,14 @@ export class ProfileService {
 
     inventory[itemIndex].equipped = false;
 
-    return await this.profileRepository.updateInventory(playerId, inventory);
+    return await this.profileRepository.updateInventory(walletAddress, inventory);
   }
 
   /**
    * 10. Set cooldown for a specific type
    */
   async setCooldown(
-    playerId: string,
+    walletAddress: string,
     type: 'battle' | 'hatch',
     seconds: number
   ): Promise<Profile> {
@@ -143,14 +143,14 @@ export class ProfileService {
       throw new BadRequestError('Cooldown seconds cannot be negative');
     }
 
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     const cooldowns = { ...profile.cooldowns };
 
     // Set cooldown to current time + seconds
     const cooldownEndTime = Date.now() + seconds * 1000;
     cooldowns[type] = cooldownEndTime;
 
-    return await this.profileRepository.updateCooldowns(playerId, cooldowns);
+    return await this.profileRepository.updateCooldowns(walletAddress, cooldowns);
   }
 
   /**
@@ -158,10 +158,10 @@ export class ProfileService {
    * @returns Remaining seconds if cooldown is active, null if no cooldown
    */
   async checkCooldown(
-    playerId: string,
+    walletAddress: string,
     type: 'battle' | 'hatch'
   ): Promise<number | null> {
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     const cooldownEndTime = profile.cooldowns[type];
 
     if (cooldownEndTime === null) {
@@ -173,7 +173,7 @@ export class ProfileService {
       // Cooldown expired, clear it
       const cooldowns = { ...profile.cooldowns };
       cooldowns[type] = null;
-      await this.profileRepository.updateCooldowns(playerId, cooldowns);
+      await this.profileRepository.updateCooldowns(walletAddress, cooldowns);
       return null;
     }
 
@@ -184,19 +184,19 @@ export class ProfileService {
   /**
    * 12. Update last login timestamp
    */
-  async updateLastLogin(playerId: string): Promise<Profile> {
-    return await this.profileRepository.updateLastLogin(playerId);
+  async updateLastLogin(walletAddress: string): Promise<Profile> {
+    return await this.profileRepository.updateLastLogin(walletAddress);
   }
 
   /**
    * 13. Increment XP
    */
-  async incrementXP(playerId: string, amount: number): Promise<Profile> {
+  async incrementXP(walletAddress: string, amount: number): Promise<Profile> {
     if (amount < 0) {
       throw new BadRequestError('XP amount cannot be negative');
     }
 
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     const newXP = profile.xp + amount;
 
     // Auto level up if XP threshold is reached
@@ -212,8 +212,8 @@ export class ProfileService {
   /**
    * 14. Level up player
    */
-  async levelUp(playerId: string): Promise<Profile> {
-    const profile = await this.profileRepository.findByPlayerIdOrFail(playerId);
+  async levelUp(walletAddress: string): Promise<Profile> {
+    const profile = await this.profileRepository.findByWalletAddressOrFail(walletAddress);
     
     // Calculate required XP for next level
     const xpForNextLevel = this.calculateXPForLevel(profile.level + 1);

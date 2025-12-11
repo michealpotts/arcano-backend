@@ -13,7 +13,7 @@ export interface Cooldowns {
 }
 
 export interface CreateProfileDto {
-  playerId: string;
+  walletAddress: string;
 }
 
 export interface UpdateNickNameDto {

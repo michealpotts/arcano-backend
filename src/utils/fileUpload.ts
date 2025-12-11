@@ -22,13 +22,13 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename: profile_playerId_timestamp.extension
-    // Sanitize playerId to avoid filesystem/URL issues (remove special chars)
-    const playerId = (req.params.playerId || 'unknown')
+    // Generate unique filename: profile_walletAddress_timestamp.extension
+    // Sanitize walletAddress to avoid filesystem/URL issues (remove special chars)
+    const walletAddress = (req.params.walletAddress || 'unknown')
       .replace(/[^a-zA-Z0-9]/g, '_'); // Replace special chars with underscore
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    cb(null, `profile_${playerId}_${uniqueSuffix}${ext}`);
+    cb(null, `profile_${walletAddress}_${uniqueSuffix}${ext}`);
   },
 });
 

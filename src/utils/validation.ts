@@ -4,12 +4,12 @@
 
 import { z } from 'zod';
 
-// PlayerId validation (adjust pattern based on GalaChain wallet format)
-export const playerIdSchema = z.string().min(1, 'PlayerId is required');
+// WalletAddress validation (Ethereum address format)
+export const walletAddressSchema = z.string().min(1, 'Wallet address is required');
 
 // Profile schemas
 export const createProfileSchema = z.object({
-  playerId: playerIdSchema,
+  walletAddress: walletAddressSchema,
 });
 
 export const updateNickNameSchema = z.object({

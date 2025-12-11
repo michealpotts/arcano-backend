@@ -18,8 +18,11 @@ export class Profile {
   id!: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  @Index('IDX_playerId', { unique: true })
-  playerId!: string; // GalaChain wallet identity
+  @Index('IDX_walletAddress', { unique: true })
+  walletAddress!: string; // GalaChain wallet address (unique identifier)
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  playerId!: string; // Player ID (can be same as walletAddress or different)
 
   @Column({ type: 'varchar', length: 100 })
   nickName!: string;

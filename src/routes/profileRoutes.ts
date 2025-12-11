@@ -4,27 +4,27 @@
 
 import { Router } from 'express';
 import { ProfileController } from '../controllers/ProfileController';
-import { validate, validateParams, createProfileSchema, updateNickNameSchema, equipItemSchema, setCooldownSchema, playerIdSchema } from '../utils/validation';
+import { validate, validateParams, createProfileSchema, updateNickNameSchema, equipItemSchema, setCooldownSchema, walletAddressSchema } from '../utils/validation';
 import { upload, handleUploadError } from '../utils/fileUpload';
 import { z } from 'zod';
 
 const router = Router();
 const profileController = new ProfileController();
 
-// PlayerId param validation schema
-const playerIdParamSchema = z.object({
-  playerId: playerIdSchema,
+// WalletAddress param validation schema
+const walletAddressParamSchema = z.object({
+  walletAddress: walletAddressSchema,
 });
 
 // Cooldown type param validation schema
 const cooldownTypeParamSchema = z.object({
-  playerId: playerIdSchema,
+  walletAddress: walletAddressSchema,
   type: z.enum(['battle', 'hatch']),
 });
 
 /**
  * POST /profile/login
- * Create or fetch profile by playerId
+ * Create or fetch profile by walletAddress
  */
 router.post(
   '/login',
@@ -33,107 +33,107 @@ router.post(
 );
 
 /**
- * GET /profile/:playerId
- * Get profile by playerId
+ * GET /profile/:walletAddress
+ * Get profile by walletAddress
  */
 router.get(
-  '/:playerId',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress',
+  validateParams(walletAddressParamSchema),
   profileController.getProfile
 );
 
 /**
- * PATCH /profile/:playerId/nickname
+ * PATCH /profile/:walletAddress/nickname
  * Update nickname
  */
 router.patch(
-  '/:playerId/nickname',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/nickname',
+  validateParams(walletAddressParamSchema),
   validate(updateNickNameSchema),
   profileController.updateNickName
 );
 
 /**
- * PATCH /profile/:playerId/profile-picture
+ * PATCH /profile/:walletAddress/profile-picture
  * Update profile picture (file upload)
  */
 router.patch(
-  '/:playerId/profile-picture',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/profile-picture',
+  validateParams(walletAddressParamSchema),
   upload.single('profilePicture'),
   handleUploadError,
   profileController.updateProfilePicture
 );
 
 /**
- * POST /profile/:playerId/sync-balance
+ * POST /profile/:walletAddress/sync-balance
  * Sync GALA balance from blockchain
  */
 router.post(
-  '/:playerId/sync-balance',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/sync-balance',
+  validateParams(walletAddressParamSchema),
   profileController.syncGalaBalance
 );
 
 /**
- * GET /profile/:playerId/inventory
+ * GET /profile/:walletAddress/inventory
  * Get inventory from database
  */
 router.get(
-  '/:playerId/inventory',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/inventory',
+  validateParams(walletAddressParamSchema),
   profileController.getInventory
 );
 
 /**
- * POST /profile/:playerId/inventory/refresh
+ * POST /profile/:walletAddress/inventory/refresh
  * Refresh inventory from blockchain
  */
 router.post(
-  '/:playerId/inventory/refresh',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/inventory/refresh',
+  validateParams(walletAddressParamSchema),
   profileController.refreshInventory
 );
 
 /**
- * POST /profile/:playerId/inventory/equip
+ * POST /profile/:walletAddress/inventory/equip
  * Equip an item
  */
 router.post(
-  '/:playerId/inventory/equip',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/inventory/equip',
+  validateParams(walletAddressParamSchema),
   validate(equipItemSchema),
   profileController.equipItem
 );
 
 /**
- * POST /profile/:playerId/inventory/unequip
+ * POST /profile/:walletAddress/inventory/unequip
  * Unequip an item
  */
 router.post(
-  '/:playerId/inventory/unequip',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/inventory/unequip',
+  validateParams(walletAddressParamSchema),
   validate(equipItemSchema), // Uses same schema as equip (just instanceId)
   profileController.unequipItem
 );
 
 /**
- * POST /profile/:playerId/cooldown
+ * POST /profile/:walletAddress/cooldown
  * Set cooldown
  */
 router.post(
-  '/:playerId/cooldown',
-  validateParams(playerIdParamSchema),
+  '/:walletAddress/cooldown',
+  validateParams(walletAddressParamSchema),
   validate(setCooldownSchema),
   profileController.setCooldown
 );
 
 /**
- * GET /profile/:playerId/cooldown/:type
+ * GET /profile/:walletAddress/cooldown/:type
  * Check cooldown status
  */
 router.get(
-  '/:playerId/cooldown/:type',
+  '/:walletAddress/cooldown/:type',
   validateParams(cooldownTypeParamSchema),
   profileController.checkCooldown
 );

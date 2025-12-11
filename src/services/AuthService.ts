@@ -4,10 +4,9 @@
  */
 
 import jwt from 'jsonwebtoken';
-import { signatures } from '@gala-chain/api';
+import { ethers } from 'ethers';
 
 interface TokenPayload {
-  playerId: string;
   walletAddress: string;
   iat?: number;
   exp?: number;
@@ -25,9 +24,8 @@ export class AuthService {
   /**
    * Generate JWT token for authenticated user
    */
-  generateToken(playerId: string, walletAddress: string): string {
+  generateToken(walletAddress: string): string {
     const payload: TokenPayload = {
-      playerId,
       walletAddress,
     };
 
@@ -51,56 +49,18 @@ export class AuthService {
   /**
    * Verify signed message from Gala wallet
    * Validates that the signature was created by the wallet address
-   * Uses Gala SDK signature verification (secp256k1)
+   * Uses ethers signature verification (secp256k1)
    * 
    * @param message - Original message that was signed
    * @param signature - Signature from wallet (hex format with recovery param)
-   * @param walletAddress - Expected wallet address (with or without 0x prefix)
-   * @returns true if signature is valid, false otherwise
+   * @returns walletAddress if signature is valid, null otherwise
    */
-  verifySignature(message: string, signature: string, walletAddress: string): boolean {
+  verifySignature(message: string, signature: string): string | null {
     try {
-      // Extract Ethereum address from Gala format (e.g., "eth|0x123..." or "client|123...")
-      // The signature was created with the actual Ethereum address, not the Gala format
-
-      let ethAddress = walletAddress;
-      
-      if (walletAddress.includes('|')) {
-        // Split by | and take the part after it
-        ethAddress = walletAddress.split('|')[1];
-      }
-      
-      // Normalize the wallet address (remove 0x prefix if present, convert to lowercase)
-      const normalizedExpectedAddress = ethAddress.toLowerCase().replace(/^0x/, '');
-      
-      console.log('=== Signature Verification ===');
-      console.log('Original Wallet Address:', walletAddress);
-      console.log('Extracted ETH Address:', ethAddress);
-      console.log('Normalized Expected Address:', normalizedExpectedAddress);
-      console.log('Message:', message);
-      console.log('Signature:', signature);
-      
-      // Use SDK to recover the public key from the signature
-      const recoveredPublicKey = signatures.recoverPublicKey(signature, message);
-      
-      if (!recoveredPublicKey) {
-        console.log('Failed to recover public key');
-        return false;
-      }
-      
-      console.log('Recovered Public Key:', recoveredPublicKey);
-      
-      // Get the Ethereum address from the recovered public key
-      const recoveredAddress = signatures.getEthAddress(recoveredPublicKey).toLowerCase().replace(/^0x/, '');
-      
-      console.log('Recovered Address:', recoveredAddress);
-      console.log('Match:', recoveredAddress === normalizedExpectedAddress);
-      
-    //   return recoveredAddress === normalizedExpectedAddress;
-    return true;
+      const recoveredAddress = ethers.verifyMessage(message, signature);
+      return recoveredAddress.toLowerCase();
     } catch (error) {
-      console.error('Signature verification error:', error);
-      return false;
+      return null;
     }
   }
 

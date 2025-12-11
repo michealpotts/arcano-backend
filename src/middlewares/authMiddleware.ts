@@ -10,7 +10,6 @@ import { AppError } from '../utils/errors';
 declare global {
   namespace Express {
     interface Request {
-      userId?: string;
       walletAddress?: string;
     }
   }
@@ -32,21 +31,20 @@ export class AuthMiddleware {
       const authHeader = req.headers.authorization;
       
       if (!authHeader) {
-        throw new AppError('Authorization header missing', 401);
+        throw new AppError(401, 'Authorization header missing');
       }
 
       const token = this.authService.extractToken(authHeader);
       if (!token) {
-        throw new AppError('Invalid authorization format', 401);
+        throw new AppError(401, 'Invalid authorization format');
       }
 
       const payload = this.authService.verifyToken(token);
       if (!payload) {
-        throw new AppError('Invalid or expired token', 401);
+        throw new AppError(401, 'Invalid or expired token');
       }
 
       // Attach user info to request
-      req.userId = payload.playerId;
       req.walletAddress = payload.walletAddress;
 
       next();

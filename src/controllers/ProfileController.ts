@@ -14,11 +14,11 @@ export class ProfileController {
 
   /**
    * POST /profile/login
-   * Create or fetch profile by playerId
+   * Create or fetch profile by walletAddress
    * 
    * Request Body:
    * {
-   *   "playerId": "string"
+   *   "walletAddress": "string"
    * }
    * 
    * Response:
@@ -26,7 +26,7 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "nickName": "string",
    *     "profilePicture": "string | null",
    *     "xp": 0,
@@ -42,9 +42,9 @@ export class ProfileController {
    */
   login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.body;
-      const profile = await this.profileService.createProfile(playerId);
-      await this.profileService.updateLastLogin(playerId);
+      const { walletAddress } = req.body;
+      const profile = await this.profileService.createProfile(walletAddress);
+      await this.profileService.updateLastLogin(walletAddress);
 
       res.status(200).json({
         success: true,
@@ -57,15 +57,15 @@ export class ProfileController {
   };
 
   /**
-   * GET /profile/:playerId
-   * Get profile by playerId
+   * GET /profile/:walletAddress
+   * Get profile by walletAddress
    * 
    * Response:
    * {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "nickName": "string",
    *     "profilePicture": "string | null",
    *     "xp": 0,
@@ -81,8 +81,8 @@ export class ProfileController {
    */
   getProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
-      const profile = await this.profileService.getProfile(playerId);
+      const { walletAddress } = req.params;
+      const profile = await this.profileService.getProfile(walletAddress);
 
       res.status(200).json({
         success: true,
@@ -94,7 +94,7 @@ export class ProfileController {
   };
 
   /**
-   * PATCH /profile/:playerId/nickname
+   * PATCH /profile/:walletAddress/nickname
    * Update nickname
    * 
    * Request Body:
@@ -107,7 +107,7 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "nickName": "updated nickname",
    *     ...
    *   },
@@ -116,9 +116,9 @@ export class ProfileController {
    */
   updateNickName = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
+      const { walletAddress } = req.params;
       const { nickName } = req.body;
-      const profile = await this.profileService.updateNickName(playerId, nickName);
+      const profile = await this.profileService.updateNickName(walletAddress, nickName);
 
       res.status(200).json({
         success: true,
@@ -131,7 +131,7 @@ export class ProfileController {
   };
 
   /**
-   * PATCH /profile/:playerId/profile-picture
+   * PATCH /profile/:walletAddress/profile-picture
    * Update profile picture
    * 
    * Request: multipart/form-data with file field "profilePicture"
@@ -141,8 +141,8 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
-   *     "profilePicture": "/uploads/profile_playerId_timestamp.jpg",
+   *     "walletAddress": "string",
+   *     "profilePicture": "/uploads/profile_walletAddress_timestamp.jpg",
    *     ...
    *   },
    *   "message": "Profile picture updated successfully"
@@ -150,19 +150,20 @@ export class ProfileController {
    */
   updateProfilePicture = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
+      const { walletAddress } = req.params;
       const file = req.file;
       
       if (!file) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'No file uploaded',
         });
+        return;
       }
 
       // Generate file URL/path
       const filePath = `/uploads/${file.filename}`;
-      const profile = await this.profileService.updateProfilePicture(playerId, filePath);
+      const profile = await this.profileService.updateProfilePicture(walletAddress, filePath);
 
       res.status(200).json({
         success: true,
@@ -175,7 +176,7 @@ export class ProfileController {
   };
 
   /**
-   * POST /profile/:playerId/sync-balance
+   * POST /profile/:walletAddress/sync-balance
    * Sync GALA balance from blockchain
    * 
    * Response:
@@ -183,7 +184,7 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "galaBalance": 123.456789,
    *     ...
    *   },
@@ -192,8 +193,8 @@ export class ProfileController {
    */
   syncGalaBalance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
-      const profile = await this.profileService.syncGalaBalance(playerId);
+      const { walletAddress } = req.params;
+      const profile = await this.profileService.syncGalaBalance(walletAddress);
 
       res.status(200).json({
         success: true,
@@ -206,7 +207,7 @@ export class ProfileController {
   };
 
   /**
-   * GET /profile/:playerId/inventory
+   * GET /profile/:walletAddress/inventory
    * Get inventory from database
    * 
    * Response:
@@ -226,8 +227,8 @@ export class ProfileController {
    */
   getInventory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
-      const inventory = await this.profileService.getInventory(playerId);
+      const { walletAddress } = req.params;
+      const inventory = await this.profileService.getInventory(walletAddress);
       
       res.status(200).json({
         success: true,
@@ -239,7 +240,7 @@ export class ProfileController {
   };
 
   /**
-   * POST /profile/:playerId/inventory/refresh
+   * POST /profile/:walletAddress/inventory/refresh
    * Refresh inventory from blockchain
    * 
    * Response:
@@ -256,8 +257,8 @@ export class ProfileController {
    */
   refreshInventory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
-      const inventory = await this.profileService.refreshInventoryFromChain(playerId);
+      const { walletAddress } = req.params;
+      const inventory = await this.profileService.refreshInventoryFromChain(walletAddress);
       
       res.status(200).json({
         success: true,
@@ -270,7 +271,7 @@ export class ProfileController {
   };
 
   /**
-   * POST /profile/:playerId/inventory/equip
+   * POST /profile/:walletAddress/inventory/equip
    * Equip an item
    * 
    * Request Body:
@@ -283,7 +284,7 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "inventory": [...],
    *     ...
    *   },
@@ -292,9 +293,9 @@ export class ProfileController {
    */
   equipItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
+      const { walletAddress } = req.params;
       const { instanceId } = req.body;
-      const profile = await this.profileService.equipItem(playerId, instanceId);
+      const profile = await this.profileService.equipItem(walletAddress, instanceId);
       
       res.status(200).json({
         success: true,
@@ -307,7 +308,7 @@ export class ProfileController {
   };
 
   /**
-   * POST /profile/:playerId/inventory/unequip
+   * POST /profile/:walletAddress/inventory/unequip
    * Unequip an item
    * 
    * Request Body:
@@ -320,7 +321,7 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "inventory": [...],
    *     ...
    *   },
@@ -329,9 +330,9 @@ export class ProfileController {
    */
   unequipItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
+      const { walletAddress } = req.params;
       const { instanceId } = req.body;
-      const profile = await this.profileService.unequipItem(playerId, instanceId);
+      const profile = await this.profileService.unequipItem(walletAddress, instanceId);
       
       res.status(200).json({
         success: true,
@@ -344,7 +345,7 @@ export class ProfileController {
   };
 
   /**
-   * POST /profile/:playerId/cooldown
+   * POST /profile/:walletAddress/cooldown
    * Set cooldown
    * 
    * Request Body:
@@ -358,7 +359,7 @@ export class ProfileController {
    *   "success": true,
    *   "data": {
    *     "id": "uuid",
-   *     "playerId": "string",
+   *     "walletAddress": "string",
    *     "cooldowns": { "battle": 1704067200000, "hatch": null },
    *     ...
    *   },
@@ -367,9 +368,9 @@ export class ProfileController {
    */
   setCooldown = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId } = req.params;
+      const { walletAddress } = req.params;
       const { type, seconds } = req.body;
-      const profile = await this.profileService.setCooldown(playerId, type, seconds);
+      const profile = await this.profileService.setCooldown(walletAddress, type, seconds);
       
       res.status(200).json({
         success: true,
@@ -382,7 +383,7 @@ export class ProfileController {
   };
 
   /**
-   * GET /profile/:playerId/cooldown/:type
+   * GET /profile/:walletAddress/cooldown/:type
    * Check cooldown status
    * 
    * Response:
@@ -406,17 +407,18 @@ export class ProfileController {
    */
   checkCooldown = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { playerId, type } = req.params;
+      const { walletAddress, type } = req.params;
       
       if (type !== 'battle' && type !== 'hatch') {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid cooldown type. Must be "battle" or "hatch"',
         });
+        return;
       }
 
       const remainingSeconds = await this.profileService.checkCooldown(
-        playerId,
+        walletAddress,
         type as 'battle' | 'hatch'
       );
       

@@ -23,20 +23,20 @@ export class GalaChainService {
   }
 
   /**
-   * Fetch GALA balance for a player from the blockchain
-   * @param playerId - GalaChain wallet address/playerId
+   * Fetch GALA balance for a wallet from the blockchain
+   * @param walletAddress - GalaChain wallet address
    * @returns GALA balance
    */
-  async getBalance(playerId: string): Promise<number> {
+  async getBalance(walletAddress: string): Promise<number> {
     try {
       // TODO: Replace with actual GalaChain SDK call
       // Example implementation:
       // const sdk = new GalaChainSDK({ apiKey: this.apiKey, network: this.network });
-      // const balance = await sdk.getBalance(playerId);
+      // const balance = await sdk.getBalance(walletAddress);
       // return balance;
 
       // Mock implementation for development
-      console.log(`[GalaChain] Fetching balance for playerId: ${playerId}`);
+      console.log(`[GalaChain] Fetching balance for walletAddress: ${walletAddress}`);
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -51,23 +51,23 @@ export class GalaChainService {
   }
 
   /**
-   * Fetch inventory (NFTs/items) for a player from the blockchain
-   * @param playerId - GalaChain wallet address/playerId
+   * Fetch inventory (NFTs/items) for a wallet from the blockchain
+   * @param walletAddress - GalaChain wallet address
    * @returns Array of inventory items
    */
-  async getInventory(playerId: string): Promise<InventoryItem[]> {
+  async getInventory(walletAddress: string): Promise<InventoryItem[]> {
     try {
       // TODO: Replace with actual GalaChain SDK call
       // Example implementation:
       // const sdk = new GalaChainSDK({ apiKey: this.apiKey, network: this.network });
-      // const nfts = await sdk.getNFTs(playerId);
+      // const nfts = await sdk.getNFTs(walletAddress);
       // return nfts.map(nft => ({
       //   instanceId: nft.instanceId,
       //   equipped: false
       // }));
 
       // Mock implementation for development
-      console.log(`[GalaChain] Fetching inventory for playerId: ${playerId}`);
+      console.log(`[GalaChain] Fetching inventory for walletAddress: ${walletAddress}`);
       
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -75,11 +75,11 @@ export class GalaChainService {
       // Mock inventory - replace with actual SDK call
       const mockInventory: InventoryItem[] = [
         {
-          instanceId: `item_${playerId.slice(0, 8)}_001`,
+          instanceId: `item_${walletAddress.slice(0, 8)}_001`,
           equipped: false,
         },
         {
-          instanceId: `item_${playerId.slice(0, 8)}_002`,
+          instanceId: `item_${walletAddress.slice(0, 8)}_002`,
           equipped: false,
         },
       ];
@@ -92,22 +92,22 @@ export class GalaChainService {
   }
 
   /**
-   * Verify playerId/wallet signature (for authentication)
-   * @param playerId - GalaChain wallet address/playerId
+   * Verify wallet signature (for authentication)
+   * @param walletAddress - GalaChain wallet address
    * @param signature - Wallet signature
    * @returns True if signature is valid
    */
   async verifyWalletSignature(
-    playerId: string,
+    walletAddress: string,
     signature: string
   ): Promise<boolean> {
     try {
       // TODO: Replace with actual GalaChain SDK verification
       // const sdk = new GalaChainSDK({ apiKey: this.apiKey, network: this.network });
-      // return await sdk.verifySignature(playerId, signature);
+      // return await sdk.verifySignature(walletAddress, signature);
 
       // Mock implementation - always returns true in development
-      console.log(`[GalaChain] Verifying signature for playerId: ${playerId}`);
+      console.log(`[GalaChain] Verifying signature for walletAddress: ${walletAddress}`);
       return true;
     } catch (error) {
       console.error(`[GalaChain] Error verifying signature:`, error);
