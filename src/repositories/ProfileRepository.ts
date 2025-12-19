@@ -1,7 +1,3 @@
-/**
- * Profile Repository - Database access layer for Profile entity
- */
-
 import { AppDataSource } from '../config/database';
 import { Profile } from '../models/Profile';
 import { Repository } from 'typeorm';
@@ -15,14 +11,11 @@ export class ProfileRepository {
     this.repository = AppDataSource.getRepository(Profile);
   }
 
-  /**
-   * Create a new profile
-   */
   async create(walletAddress: string, playerId: string, nickName?: string): Promise<Profile> {
     const profile = this.repository.create({
       walletAddress,
       playerId,
-      nickName: nickName || walletAddress.slice(0, 10),
+      nickName: nickName || playerId,
       profilePicture: '',
       xp: 0,
       level: 0,
@@ -38,18 +31,12 @@ export class ProfileRepository {
     return await this.repository.save(profile);
   }
 
-  /**
-   * Find profile by walletAddress
-   */
   async findByWalletAddress(walletAddress: string): Promise<Profile | null> {
     return await this.repository.findOne({
       where: { walletAddress },
     });
   }
 
-  /**
-   * Find profile by walletAddress or throw error
-   */
   async findByWalletAddressOrFail(walletAddress: string): Promise<Profile> {
     const profile = await this.findByWalletAddress(walletAddress);
     if (!profile) {
@@ -58,25 +45,16 @@ export class ProfileRepository {
     return profile;
   }
 
-  /**
-   * Update profile
-   */
   async update(profile: Profile): Promise<Profile> {
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update nickname
-   */
   async updateNickName(walletAddress: string, nickName: string): Promise<Profile> {
     const profile = await this.findByWalletAddressOrFail(walletAddress);
     profile.nickName = nickName;
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update profile picture
-   */
   async updateProfilePicture(
     walletAddress: string,
     profilePicture: string | null
@@ -86,9 +64,6 @@ export class ProfileRepository {
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update Gala balance
-   */
   async updateGalaBalance(
     walletAddress: string,
     galaBalance: number
@@ -98,9 +73,6 @@ export class ProfileRepository {
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update inventory
-   */
   async updateInventory(
     walletAddress: string,
     inventory: InventoryItem[]
@@ -111,9 +83,6 @@ export class ProfileRepository {
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update cooldowns
-   */
   async updateCooldowns(
     walletAddress: string,
     cooldowns: Cooldowns
@@ -123,27 +92,18 @@ export class ProfileRepository {
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update last login
-   */
   async updateLastLogin(walletAddress: string): Promise<Profile> {
     const profile = await this.findByWalletAddressOrFail(walletAddress);
     profile.lastLogin = new Date();
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update XP
-   */
   async updateXP(walletAddress: string, xp: number): Promise<Profile> {
     const profile = await this.findByWalletAddressOrFail(walletAddress);
     profile.xp = xp;
     return await this.repository.save(profile);
   }
 
-  /**
-   * Update level
-   */
   async updateLevel(walletAddress: string, level: number): Promise<Profile> {
     const profile = await this.findByWalletAddressOrFail(walletAddress);
     profile.level = level;

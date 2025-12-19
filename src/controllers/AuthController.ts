@@ -1,11 +1,8 @@
-/**
- * Authentication Controller
- * Handles login, logout, and wallet signature verification
- */
-
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { ProfileService } from '../services/ProfileService';
+import { WalletService } from "../services/WalletService";
+import { GalaChainService } from "../services/GalaChainService";
 import { AppError } from '../utils/errors';
 
 const signatureMessage = "Arcano Authentication Message";
@@ -13,30 +10,16 @@ const signatureMessage = "Arcano Authentication Message";
 export class AuthController {
   private authService: AuthService;
   private profileService: ProfileService;
+  private walletService: WalletService;
+  private galaChainService: GalaChainService;
 
   constructor() {
     this.authService = new AuthService();
     this.profileService = new ProfileService();
+    this.walletService = new WalletService();
+    this.galaChainService = new GalaChainService();
   }
 
-  /**
-   * POST /auth/sign-message
-   * Generate a message to be signed by the user's wallet
-   * 
-   * Request Body:
-   * {
-   *   "walletAddress": "0x..."
-   * }
-   * 
-   * Response:
-   * {
-   *   "success": true,
-   *   "data": {
-   *     "message": "I am signing this message to log into Arcano...",
-   *     "timestamp": 1234567890
-   *   }
-   * }
-   */
   signMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { walletAddress } = req.body;
@@ -59,44 +42,28 @@ export class AuthController {
     }
   };
 
-  /**
-   * POST /auth/login
-   * Verify wallet signature and authenticate user
-   * 
-   * Request Body:
-   * {
-   *   "walletAddress": "0x...",
-   *   "message": "I am signing this message...",
-   *   "signature": "0x..."
-   * }
-   * 
-   * Response:
-   * {
-   *   "success": true,
-   *   "data": {
-   *     "token": "jwt-token",
-   *     "profile": { profile data }
-   *   }
-   * }
-   */
   login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { walletAddress, message, signature } = req.body;
-        
-      // Validate inputs
       if (!walletAddress || !message || !signature) {
         throw new AppError(400, 'Wallet address, message, and signature are required');
-      }
-
-      // Verify the signature and get the recovered wallet address
-      const recoveredWalletAddress = this.authService.verifySignature(message, signature);
-      
-      if (!recoveredWalletAddress) {
+      }    
+      const recoveredWalletAddress = this.walletService.verifySignature(message, signature);
+      if(!recoveredWalletAddress){
         throw new AppError(401, 'Invalid signature');
+      }
+      const isRegistrated = await this.galaChainService.isRegistrated(recoveredWalletAddress);
+      let playerId = "eth|"+walletAddress.replace(/^0x/i, "");
+      if(!isRegistrated){
+        const publicKey = this.walletService.getPublickey(message,signature);
+        let id = await this.galaChainService.registerUser(publicKey);
+        if(id){
+          playerId=id;
+        }
       }
 
       // Create or get profile using walletAddress
-      const profile = await this.profileService.createProfile(recoveredWalletAddress, walletAddress);
+      const profile = await this.profileService.createProfile(recoveredWalletAddress, playerId);
       await this.profileService.updateLastLogin(recoveredWalletAddress);
 
       // Generate JWT token
@@ -115,19 +82,6 @@ export class AuthController {
     }
   };
 
-  /**
-   * GET /auth/verify
-   * Verify current token is valid
-   * Requires: Authorization header with Bearer token
-   * 
-   * Response:
-   * {
-   *   "success": true,
-   *   "data": {
-   *     "walletAddress": "0x..."
-   *   }
-   * }
-   */
   verify = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.walletAddress) {

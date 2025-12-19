@@ -1,32 +1,63 @@
-/**
- * GalaChain Service - Handles blockchain interactions via GalaChain SDK
- */
-
 import dotenv from 'dotenv';
 import { InventoryItem } from '../types';
+import { RegisterEthUserDto} from "@gala-chain/api";
 
 dotenv.config();
 
-/**
- * Mock GalaChain SDK implementation
- * Replace this with actual GalaChain SDK integration
- */
 export class GalaChainService {
-  private apiKey: string;
-  private rpcUrl: string;
-  private network: string;
+  private galaUrl: string;
 
   constructor() {
-    this.apiKey = process.env.GALACHAIN_API_KEY || '';
-    this.rpcUrl = process.env.GALACHAIN_RPC_URL || 'https://api.galachain.com';
-    this.network = process.env.GALACHAIN_NETWORK || 'testnet';
+    const galaGatewayUrl = process.env.GALA_CHAIN_URL || '';
+    const channelId = process.env.GALA_CHANNEL || '';
+    const contractId = process.env.GALA_CHAINCODE || '';
+    this.galaUrl = galaGatewayUrl+'/'+channelId+'/'+contractId+'-';
   }
-
-  /**
-   * Fetch GALA balance for a wallet from the blockchain
-   * @param walletAddress - GalaChain wallet address
-   * @returns GALA balance
-   */
+  async isRegistrated(userAddress:string){
+    try {
+      const requestBody = JSON.stringify({user:`eth|${userAddress.replace(/^0x/i, "")}`});    
+      const res = await fetch(this.galaUrl+'PublicKeyContract/'+'GetPublicKey',{
+        method:"POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: requestBody
+      })
+      const resData = await res.json();   
+      if(resData.error){
+        throw new Error('request is failed');
+      }
+      return true;
+    } catch (error) {
+      console.error(`[GalaChain] Error check registration:`, error);
+      return false;
+    }
+  }
+  async registerUser(publicKey:string){
+    try {
+      const dto = new RegisterEthUserDto();
+      dto.publicKey = publicKey;
+      dto.uniqueKey = `user-register-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+      dto.sign(process.env.GALA_ADMIN_PRIVATE_KEY, false);
+      const res = await fetch(this.galaUrl+'PublicKeyContract/'+'RegisterEthUser',{
+        method:"POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: dto.serialize()
+      })
+      const resData = await res.json();
+      if(resData.error){
+        throw new Error('request is failed');
+      }
+      return resData.Data;
+    } catch (error) {
+      console.error(`[GalaChain] Error check registration:`, error);
+      return false;
+    }
+  }
   async getBalance(walletAddress: string): Promise<number> {
     try {
       // TODO: Replace with actual GalaChain SDK call
